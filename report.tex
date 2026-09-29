@@ -1,0 +1,103 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{booktabs}
+\usepackage{hyperref}
+
+\title{11-768 HW2: Evaluating a Data-Visualization Agent}
+\author{Olivia Brown}
+\date{September 28th, 2026}
+
+\begin{document}
+\maketitle
+
+\section{Part 1: Examine Seed Agent Runs}
+
+\subsection{Comparison of Ground-Truth and Validator Labels}
+The baseline validator's predictions agree with the human labels barely above chance: macro-MCC is 0.0268, and every specific error score is near zero or negative. Wrong_data and hard_to_read are particularly problematic, with the validator failing to identify any true positives. In all but execution_failures, all discrepancies are false negatives, meaning the validator passes as acceptable but shouldn't be considered acceptable. On execution failure, the validator is particularly prone to false positives. Putting all of this together, this shows that the baseline tends to either call a run a total failure (FP in execution_failure) or call it acceptable (FN in wrong_data, wrong_chart, and hard_to_read). When a run produces a flawed figure, the validator barely ever names the specific defect, and when the run fails outright it frequently hallucinates a failure even though a valid figure exists. See below the exact error rates:
+
+    execution_failure    MCC=-0.0022  TP=4 TN=65 FP=33 FN=8  support(+/-)=12/98
+    wrong_data           MCC=0.0000  TP=0 TN=73 FP=0 FN=25  support(+/-)=25/73
+    wrong_chart          MCC=0.1096  TP=3 TN=27 FP=0 FN=68  support(+/-)=71/27
+    hard_to_read         MCC=0.0000  TP=0 TN=59 FP=0 FN=39  support(+/-)=39/59
+    macro_mcc            0.0268
+
+\subsection{Validator Error Type 1}
+The first recurring error is random execution_failure predictions on runs where the agent succeeded. The validator predicts execution_failure on 37 runs, of which only 4 are true failures (33 false positives). Runs 004, 022, and 062 all exhibit the pattern. Each of these runs has a valid figure.png and a trajectory ending in a normal submission, and the ground truth instead records content defects. For example, run 004's axes-3 x-axis is linear where a log scale was requested, giving wrong_chart and wrong_data. In run 004 the model answers ``YES'' to the question ``Did the agent crash, exhaust its turns, or give up without producing a valid figure?'' and then narrates that ``The agent successfully completed the task... The agent did not crash, exhaust its turns, or give up.'' The baseline takes the leading token at face value and discards the rest as evidence, so the self-contradictory ``YES'' becomes a confident execution_failure error. Because validate() short-circuits as soon as the execution judge fires, the run is never checked for content defects at all, compounding the false positive with missed wrong_data and wrong_chart labels.
+
+\subsection{Validator Error Type 2}
+The second recurring error is systematic false negatives on the three content families: the judge sees a flawed figure and answers ``NO'' anyway. Runs 008, 025, and 026 illustrate it. In run 008 the value labels are hardly distinguishable from the background, yet the readability judge answers ``NO'' and praises the ``distinct colors'' and ``properly configured'' layout. In run 025 the request names a colour for each region, but every pie wedge is drawn in the same grey and the legend is empty. In run 026 the request asks for a sunburst with a hollow centre, but the figure shows solid circles. In all three cases the baseline predicted no errors at all. The mechanism is the judge's single generic yes/no question: it asks ``Is the rendered figure difficult or impossible to read?'' (or ``Does the plotted data differ...?'' / ``Does the figure fail to follow any part of the requested chart design?'') without ever using the concrete requirements from the task instructions, so the model describes the figure instead of comparing it against the spec, and defaults to the negative answer.
+
+\subsection{Proposed Validator Changes}
+To address Error Type 1, the validator should decide execution_failure without asking the model for a yes/no vote. Instead, it should check the facts directly. Execution_failure only happens when the run has no figure at all, or the trajectory ends in a crash, runs out of turns, or the agent gives up, so if a valid figure.png exists the run is not an execution failure. This removes the model from the decision, so a confused "YES" can no longer create a false positive. When the model is still asked for a judgment, it should explain its reasoning first and give a final verdict at the end, instead of answering yes or no upfront. To address Error Type 2, the validator should stop asking one broad question per family and instead list the specific requirements from the task instructions and check them one by one against the figure, the code the agent wrote, and the input data. A checklist makes the model compare each detail instead of describing the figure in general terms, so problems like run 008's unreadable labels or run 025's missing colors become failed checks instead of getting lost in an general description. 
+
+\section{Part 2: Improve Your Validator}
+
+\subsection{Implemented Changes}
+Describe the two changes implemented from Part 1. Distinguish deterministic
+checks from model-based checks, where applicable, and explain how each change
+uses the task, trajectory, input data, or rendered figure.
+
+\subsection{Seed-Set Performance vs.\ Baseline}
+Report the modified validator's performance on the seed runs alongside the
+baseline using all four per-family MCC scores and macro-MCC.
+
+\subsection{Qualitative Analysis of Targeted Error Types}
+For each of the two error types surfaced in Part 1, discuss whether the
+corresponding change actually mitigated it, with reference to specific runs.
+Also describe any regressions.
+
+\section{Part 3: Design New Evaluation Tasks}
+
+\subsection{Anticipated Generalization Weaknesses}
+Identify two classes of visualization task that your current validator may
+have trouble generalizing to, and explain why.
+
+\subsection{Task Design}
+Describe the five visualization tasks, including at least two from each
+weakness class. For each task, describe its inputs and data source, expected
+behavior, and why it is a useful stress test for the validator.
+
+\subsection{Agent Runs and Labeling}
+Describe the agents run on the new tasks, the runs generated, and how you
+assigned human labels using the four fixed error families. Explain any
+ambiguous labeling decisions.
+
+\subsection{Validator Performance on New Tasks}
+Report all four per-family MCC scores and macro-MCC on the new agent runs and qualitatively
+analyze important successes, failures, and uncertain labels.
+
+\subsection{Harbor Packaging}
+State that every authored task scores 1.0 against \texttt{-a oracle}; you may
+also report the recommended \texttt{-a nop} runs. Describe both plausible-but-wrong
+mutant solutions and report each reward. For the mutant scoring 0, explain what
+it gets wrong and name the assertion that rejects it. For the mutant scoring
+1.0, explain what it gets wrong and why the verifier accepts it. Then, for each
+of the four error families, say whether a deterministic Harbor verifier for your
+task could decide it, and why or why not. Finally: your validator is graded on
+private runs for tasks you never authored. Explain why a per-task verifier
+cannot serve as that grading mechanism.
+
+\section{Part 4: Iterate on Your Design}
+
+\subsection{Additional Improvement Motivated by Part 3}
+Describe at least one change to the validator motivated by the Part 3 results.
+Identify the observed failure that motivated it and explain why you expected
+the change to help.
+
+\subsection{Final Evaluation on Seed and New Tasks}
+Evaluate the final validator on both the seed runs and self-authored runs.
+Report all four per-family MCC scores and macro-MCC before and after the change on each subset,
+including any regressions.
+
+\subsection{Qualitative Analysis of Self-Authored Tasks}
+Discuss whether the change improved performance on your self-authored tasks,
+with reference to specific runs.
+
+\subsection{Further Changes}
+Report any additional validator changes or tasks beyond the required ones.
+For each, explain its motivation and how successful you judged it to be,
+qualitatively and, for quantitative comparisons, using all four per-family MCC
+scores and macro-MCC.
+
+\end{document}

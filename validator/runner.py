@@ -75,7 +75,8 @@ def write_predictions(path: Path, predictions: dict[str, Prediction]) -> None:
     """Checkpoint the predictions collected so far, in run order."""
     path.parent.mkdir(parents=True, exist_ok=True)
     ordered = [predictions[run_id] for run_id in sorted(predictions)]
-    path.write_text(PredictionFile(predictions=ordered).model_dump_json(indent=2) + "\n")
+    path.write_text(PredictionFile(predictions=ordered).model_dump_json(indent=2) + "\n",
+                    encoding="utf-8")
 
 
 def main() -> None:
