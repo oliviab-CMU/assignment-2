@@ -1,0 +1,8 @@
+{
+  "task_id": "dense-timeseries-legend",
+  "task_class": "readability_traps",
+  "instructions": "Using matplotlib, read sensors.csv, which contains a timestamp column and eight sensor reading columns (sensor_a through sensor_h), one row per day. Plot each sensor as its own line on a single axes, each in a distinct color, with line width 1.0 and no markers. Label the x-axis 'Date' and the y-axis 'Reading'. Give the figure the title 'Daily Sensor Readings'. Place the legend outside the plot area on the right side so it covers no data, showing one entry per sensor in the order sensor_a through sensor_h. Rotate the x tick labels by 30 degrees. Save the figure to figure.png with a figure size of 10 by 5 inches.",
+  "inputs": [
+    {"name": "sensors.csv", "path": "inputs/sensors.csv"}
+  ]
+}

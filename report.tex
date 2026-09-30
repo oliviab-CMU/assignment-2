@@ -29,7 +29,7 @@ The first recurring error is random execution_failure predictions on runs where 
 The second recurring error is systematic false negatives on the three content families: the judge sees a flawed figure and answers ``NO'' anyway. Runs 008, 025, and 026 illustrate it. In run 008 the value labels are hardly distinguishable from the background, yet the readability judge answers ``NO'' and praises the ``distinct colors'' and ``properly configured'' layout. In run 025 the request names a colour for each region, but every pie wedge is drawn in the same grey and the legend is empty. In run 026 the request asks for a sunburst with a hollow centre, but the figure shows solid circles. In all three cases the baseline predicted no errors at all. The mechanism is the judge's single generic yes/no question: it asks ``Is the rendered figure difficult or impossible to read?'' (or ``Does the plotted data differ...?'' / ``Does the figure fail to follow any part of the requested chart design?'') without ever using the concrete requirements from the task instructions, so the model describes the figure instead of comparing it against the spec, and defaults to the negative answer.
 
 \subsection{Proposed Validator Changes}
-To address Error Type 1, the validator should decide execution_failure without asking the model for a yes/no vote. Instead, it should check the facts directly. Execution_failure only happens when the run has no figure at all, or the trajectory ends in a crash, runs out of turns, or the agent gives up, so if a valid figure.png exists the run is not an execution failure. This removes the model from the decision, so a confused "YES" can no longer create a false positive. When the model is still asked for a judgment, it should explain its reasoning first and give a final verdict at the end, instead of answering yes or no upfront. To address Error Type 2, the validator should stop asking one broad question per family and instead list the specific requirements from the task instructions and check them one by one against the figure, the code the agent wrote, and the input data. A checklist makes the model compare each detail instead of describing the figure in general terms, so problems like run 008's unreadable labels or run 025's missing colors become failed checks instead of getting lost in an general description. 
+To address Error Type 1, the validator should decide execution_failure without asking the model for a yes/no vote. Instead, it should check the facts directly. Execution_failure only happens when the run has no figure at all, or the trajectory ends in a crash, runs out of turns, or the agent gives up, so if a valid figure.png exists the run is not an execution failure. This removes the model from the decision, so a confused "YES" can no longer create a false positive. When the model is still asked for a judgment, it should explain its reasoning first and give a final verdict at the end, instead of answering yes or no upfront. To address Error Type 2, the validator should stop asking one broad question per family and instead list the specific requirements from the task instructions and check them one by one against the figure, the code the agent wrote, and the input data. A checklist makes the model compare each detail instead of describing the figure in general terms, so problems like run 008's unreadable labels or run 025's missing colors become failed checks instead of getting lost in an general description.
 
 \section{Part 2: Improve Your Validator}
 
@@ -51,22 +51,51 @@ Both targeted error types are substantially mitigated. Error Type 1 (spurious ex
 \section{Part 3: Design New Evaluation Tasks}
 
 \subsection{Anticipated Generalization Weaknesses}
-Identify two classes of visualization task that your current validator may
-have trouble generalizing to, and explain why.
+The improved validator judges every figure through a single checklist call: the model must first restate the requirements it can find in the task instructions, verify each one against the figure and the trajectory, and only then decide which of the three content families (if any) fired. Two classes of visualization task stress exactly the assumptions this design rests on, and I therefore picked one weakness class per assumption.
+
+The first weakness class is "readability traps": figures whose instructions all hold (correct chart type, correct data, correct layout) but whose rendering defeats the reader - a legend stacked eight times on top of the data, tick labels that collide, value labels swamped by a background. The checklist judges requirements one by one, and every individual requirement ("title X", "legend with entries A and B") can be met even while the composite image is unreadable, so a requirement-by-requirement judge has no natural slot for "the parts are all correct but the whole is unusable" and tends to pass such figures. The seed validator's weakest family was already hard_to_read (5 of 39 positives found), and I expected that gap to widen on tasks purpose-built so that the only defect is readability.
+
+The second weakness class is "data transforms": figures where the drawn quantities are a formula over the input (normalization, filtering followed by an empirical distribution, log-scaled axes) rather than a column read straight from a file. Checking "does the plotted data match" then requires the validator to internally replay the transform - compute the filter, the cumulative fractions, or the percentage shares from the CSV - and compare the replayed numbers against pixel positions in the figure. A VLM judge cannot multiply, filter, or aggregate reliably, and nothing in my checklist tells it to try, so I expected systematic false negatives in wrong_data whenever the defect lives in the derivation instead of in a directly readable property. Both classes are also cheap for the agents to half-fail: a stacked-share chart plotted with raw counts instead of 100 percent shares is a two-line mistake that only a transform-aware reviewer can catch.
 
 \subsection{Task Design}
-Describe the five visualization tasks, including at least two from each
-weakness class. For each task, describe its inputs and data source, expected
-behavior, and why it is a useful stress test for the validator.
+I wrote five tasks, two in the readability-trap class and three in the data-transform class (the transform class got the extra task because its failure mode is harder to elicit). All inputs are synthetic CSVs generated for this assignment; each task directory under tasks/ holds its task.json and its inputs.
+
+- dense-timeseries-legend (readability_traps). Eight sensor lines (sensors.csv, 30 days x 8 columns) on a single axes that is deliberately crowded: eight near-parallel series, a legend that must go outside on the right, 30 rotated date tick labels. A reader can only attribute a line through the legend, so any legend placement mistake immediately hides data. Stress test: does the validator notice a legend that covers bars/lines or collides with tick labels, the seed validator's weakest spot.
+- contrast-heatmap (readability_traps). A 6x6 correlation matrix (correlation.csv) as a coolwarm heatmap with the value printed inside every cell in black at font size 12 and x tick labels rotated 45 degrees. Stress test: text-over-content collisions (cell text vs. cell color both matter) and tick-label rotation, plus a colorbar requirement the checklist must remember to verify.
+- filtered-cdf-log (data_transforms). From 500 latencies (latencies.csv), keep only measurements above 50 ms, compute the empirical CDF of the kept values, and draw it on a log x-axis with exact limits [50, 1000], a dashed reference line at 0.5, and a 'median' annotation at the crossing. Stress test: three chained transforms (filter, ECDF, log limits); the validator must notice an unfiltered or wrongly limited curve.
+- grouped-barchart-values (readability_traps). Grouped bars from product_sales.csv with exact hex colors per quarter, a value label above every bar (no decimals), and a legend in the upper right that must not cover any bars - a corner case where the "correct" legend position sits over the tallest group's label region.
+- normalized-stacked-share (data_transforms). From raw respondent rows (platform_votes.csv), draw a horizontal 100 percent stacked bar chart of per-platform percentage shares, ordered youngest-at-top with the requested stack order and colors. Stress test: counting-to-share normalization is exactly the replay-a-formula check a non-computing judge fails; plotting raw counts yields visibly plausible-but-wrong bars.
 
 \subsection{Agent Runs and Labeling}
-Describe the agents run on the new tasks, the runs generated, and how you
-assigned human labels using the four fixed error families. Explain any
-ambiguous labeling decisions.
+I ran each task once per fixed agent (Qwen/Qwen2.5-Coder-3B-Instruct, mistralai/Ministral-3-14B-Instruct-2512, zai-org/GLM-4.7-Flash) via "workflow generate", producing the 15 runs under runs/<task__agent>/, and reviewed every run myself against the task instructions, the trajectory, and the figure, writing the results into labels.json.
+
+Agent-level results: GLM-4.7-Flash produced four clean figures and one flawed one; Ministral-3-14B produced four clean figures and two defective ones (one flawed figure, one ordering violation); Qwen2.5-Coder-3B produced no valid figure on four of the five tasks - it repeatedly burned its step budget trying to download nonexistent files or looping on errors, and on the one task where it did finish (normalized-stacked-share) the figure was badly wrong. The four execution failures were all Qwen runs, and every one of them left no figure.png with an empty submission, matching the assignment's terminal definition exactly.
+
+The eight defective runs received these labels (one entry per family with evidence quoted from the run):
+
+- contrast-heatmap__qwen, dense-timeseries-legend__qwen, filtered-cdf-log__qwen, grouped-barchart-values__qwen: execution_failure (no figure; loops on failed downloads/errors until the limit).
+- contrast-heatmap__ministral: wrong_chart - numeric 0-5 tick labels on both axes instead of the required var1-var6 names, x ticks rotated almost 90 degrees instead of 45.
+- grouped-barchart-values__glm: hard_to_read - the legend consists of eight repeated Q1/Q2 pairs and sits in the upper right covering the epsilon bars and their "250" label.
+- grouped-barchart-values__ministral: wrong_data - product groups rendered in the order alpha, beta, delta, epsilon, gamma instead of the CSV sequence alpha, beta, gamma, delta, epsilon.
+- normalized-stacked-share__qwen: wrong_data + wrong_chart + hard_to_read - raw proportions on a 0-0.14 axis instead of percentage shares summing to 100, entire platforms missing from some bars (55+ is a single red segment), stack order violated (35-44 leads with purple), single-entry legend in the top right covering the 18-24 bar.
+
+The one genuinely ambiguous call was grouped-barchart-values__ministral: nothing in the instructions names an order for the product groups, and the assignment's "wrong order" clause is triggered by "a different order from the one requested". I labeled it wrong_data on the reading that the CSV row order is the requested sequence and a group-per-product task silently promises one row per product in file order; a stricter reading would label the run clean. I flagged this in the disagreement analysis below.
 
 \subsection{Validator Performance on New Tasks}
-Report all four per-family MCC scores and macro-MCC on the new agent runs and qualitatively
-analyze important successes, failures, and uncertain labels.
+Running the Part 2 validator (output/pre_iteration_authored_predictions.json) against these labels gives:
+
+    execution_failure    MCC=1.0000  TP=4 TN=11 FP=0 FN=0  support(+/-)=4/11
+    wrong_data           MCC=0.0000  TP=0 TN=9 FP=0 FN=2  support(+/-)=2/9
+    wrong_chart          MCC=0.6236  TP=2 TN=7 FP=2 FN=0  support(+/-)=2/9
+    hard_to_read         MCC=0.6708  TP=1 TN=9 FP=0 FN=1  support(+/-)=2/9
+    macro_mcc            0.5736
+
+The deterministic execution check transfers perfectly: all four real failures found, no false alarms, because "no decodable figure.png" is exactly what all four runs have in common. The transform-dependent wrong_data score collapses to 0.0 (both positives missed), as predicted in the design section. The two hard cases:
+
+- normalized-stacked-share__qwen (three human labels, two validator labels). The validator's evidence - "x-axis values ranging from 0.00 to 0.14" - identifies the raw-count defect precisely but files it under wrong_chart instead of wrong_data; its color and legend complaints are real (wrong colors, wrong legend position and content). Same family, wrong evidence, as with the heatmap rotation case below: the judge sees the symptoms but not the mechanism, so it cannot name the family that a human would file the same observation under.
+- contrast-heatmap__ministral: correct family (wrong_chart) but the evidence names "270-degree rotation" rather than the actual numeric tick labels - the judge latched onto a rotation cue at the figure's edge and mis-reported the defect's mechanism.
+
+All four validator errors are either false positives (filtered-cdf-log__ministral: the validator claimed x limits start at "approximately 10" although the script calls plt.xlim(50, 1000) and the axis geometry confirms it; grouped-barchart-values__glm: flagged as wrong_chart "colors reversed" although the left bar is blue for Q1 as required - the actual defect is the legend, which the validator missed) or false negatives (grouped-barchart-values__ministral's ordering violation, and the missing wrong_data half of the qwen stacked run). Every missed or misfiled case involves either counting/deriving a quantity from the input or comparing pixel-level detail against the input file - the two things the checklist design never asks the model to do.
 
 \subsection{Harbor Packaging}
 State that every authored task scores 1.0 against \texttt{-a oracle}; you may

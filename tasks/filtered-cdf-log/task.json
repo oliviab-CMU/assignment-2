@@ -1,0 +1,8 @@
+{
+  "task_id": "filtered-cdf-log",
+  "task_class": "data_transforms",
+  "instructions": "Using matplotlib, read latencies.csv, which contains a single column latency_ms with 500 request latency measurements. First keep only the measurements above 50 ms, then compute the empirical cumulative distribution: for each distinct latency value, the fraction of kept measurements less than or equal to it. Plot this CDF as a single blue line with line width 2. Label the x-axis 'Latency (ms)' and the y-axis 'Cumulative fraction', and give the figure the title 'CDF of Request Latencies above 50ms'. Set the x-axis to a logarithmic scale, with the x-axis limits exactly from 50 to 1000. Draw a thin dashed horizontal reference line at 0.5 in grey, and annotate the point where the CDF crosses 0.5 with the text 'median' in black. Save the figure to figure.png with a figure size of 8 by 5 inches.",
+  "inputs": [
+    {"name": "latencies.csv", "path": "inputs/latencies.csv"}
+  ]
+}

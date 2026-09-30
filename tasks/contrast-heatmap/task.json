@@ -1,0 +1,8 @@
+{
+  "task_id": "contrast-heatmap",
+  "task_class": "readability_traps",
+  "instructions": "Using matplotlib, read correlation.csv, which holds a 6x6 correlation matrix with row and column headers in the first column and first row. Draw a heatmap of the correlation values using the 'coolwarm' colormap, with the correlation value printed inside every cell in black text with font size 12, formatted to exactly two decimal places. Label the x-axis 'Variable' and the y-axis 'Variable', rotate the x tick labels by 45 degrees so they do not overlap, and give the figure the title 'Correlation Matrix'. Add a colorbar labeled 'Correlation'. Save the figure to figure.png with a figure size of 8 by 6 inches.",
+  "inputs": [
+    {"name": "correlation.csv", "path": "inputs/correlation.csv"}
+  ]
+}

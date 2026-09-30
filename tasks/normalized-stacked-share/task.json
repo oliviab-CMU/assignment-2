@@ -1,0 +1,8 @@
+{
+  "task_id": "normalized-stacked-share",
+  "task_class": "data_transforms",
+  "instructions": "Using matplotlib, read platform_votes.csv, which contains columns age_group and platform, with one row per respondent. Draw a horizontal stacked bar chart showing, for each age group, the percentage share of respondents per platform (stack segments summing to 100 for each bar), not the raw counts. Order age groups on the y-axis from youngest at the top to oldest at the bottom, and stack platform segments in a fixed order: video, text, audio, with the colors '#2ca02c', '#d62728', '#9467bd' respectively. Label the x-axis 'Share of respondents (%)' and the y-axis 'Age group', and give the figure the title 'Platform Share by Age Group'. Add a legend identifying the three platforms, placed below the plot. Save the figure to figure.png with a figure size of 9 by 5 inches.",
+  "inputs": [
+    {"name": "platform_votes.csv", "path": "inputs/platform_votes.csv"}
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "task_id": "grouped-barchart-values",
+  "task_class": "readability_traps",
+  "instructions": "Using matplotlib, read product_sales.csv, which contains columns product, quarter, and sales. Draw a grouped bar chart of sales by quarter, one group per product with two adjacent bars (one per quarter) inside each group, using the colors '#1f77b4' for Q1 and '#ff7f0e' for Q2. Print the sales value above each bar in black text with font size 9, formatted with no decimals. Label the x-axis 'Product', the y-axis 'Sales', and give the figure the title 'Product Sales by Quarter'. Add a legend identifying Q1 and Q2, placed in the upper right corner but not covering any bars. Save the figure to figure.png with a figure size of 9 by 6 inches.",
+  "inputs": [
+    {"name": "product_sales.csv", "path": "inputs/product_sales.csv"}
+  ]
+}

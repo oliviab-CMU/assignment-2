@@ -1,0 +1,112 @@
+{
+  "labels": [
+    {
+      "run_id": "contrast-heatmap__glm",
+      "errors": []
+    },
+    {
+      "run_id": "contrast-heatmap__ministral",
+      "errors": [
+        {
+          "family": "wrong_chart",
+          "evidence": "Tick labels are 0-5 on both axes instead of the variable names var1-var6 required by the task (the script used matshow on the raw values without setting xticklabels/yticklabels); the x tick labels are also rotated nearly 90 degrees rather than the requested 45."
+        }
+      ]
+    },
+    {
+      "run_id": "contrast-heatmap__qwen",
+      "errors": [
+        {
+          "family": "execution_failure",
+          "evidence": "No figure.png was produced; the trajectory looped on a dtype/step error and exited with LimitsExceeded (artifact_present=false, empty submission)."
+        }
+      ]
+    },
+    {
+      "run_id": "dense-timeseries-legend__glm",
+      "errors": []
+    },
+    {
+      "run_id": "dense-timeseries-legend__ministral",
+      "errors": []
+    },
+    {
+      "run_id": "dense-timeseries-legend__qwen",
+      "errors": [
+        {
+          "family": "execution_failure",
+          "evidence": "No figure.png was produced (artifact_present=false, empty submission) despite exit status 'Submitted'; the trajectory spent its steps on failed wget attempts (HTTP 404) and never plotted anything."
+        }
+      ]
+    },
+    {
+      "run_id": "filtered-cdf-log__glm",
+      "errors": []
+    },
+    {
+      "run_id": "filtered-cdf-log__ministral",
+      "errors": []
+    },
+    {
+      "run_id": "filtered-cdf-log__qwen",
+      "errors": [
+        {
+          "family": "execution_failure",
+          "evidence": "No figure.png was produced; the trajectory looped on failed download attempts ('File not found') until LimitsExceeded (artifact_present=false, empty submission)."
+        }
+      ]
+    },
+    {
+      "run_id": "grouped-barchart-values__glm",
+      "errors": [
+        {
+          "family": "hard_to_read",
+          "evidence": "The legend overwrote itself eight times (one Q1/Q2 pair per bar pair) and sits in the upper right covering the epsilon bars and the epsilon Q2 value label '250', which is barely visible under the legend box."
+        }
+      ]
+    },
+    {
+      "run_id": "grouped-barchart-values__ministral",
+      "errors": [
+        {
+          "family": "wrong_data",
+          "evidence": "Product groups appear in the order alpha, beta, delta, epsilon, gamma instead of the CSV row order alpha, beta, gamma, delta, epsilon (the script reindexed the categories via a sorted set, shuffling the requested sequence)."
+        }
+      ]
+    },
+    {
+      "run_id": "grouped-barchart-values__qwen",
+      "errors": [
+        {
+          "family": "execution_failure",
+          "evidence": "No figure.png was produced; the trajectory issued empty-output commands until LimitsExceeded (artifact_present=false, empty submission)."
+        }
+      ]
+    },
+    {
+      "run_id": "normalized-stacked-share__glm",
+      "errors": []
+    },
+    {
+      "run_id": "normalized-stacked-share__ministral",
+      "errors": []
+    },
+    {
+      "run_id": "normalized-stacked-share__qwen",
+      "errors": [
+        {
+          "family": "wrong_data",
+          "evidence": "Bars plot raw proportions on a 0.00-0.14 axis instead of percentage shares summing to 100 (e.g. 18-24 video is 0.14, not 70%), and several requested platform segments are missing entirely - the 55+ bar is a single red segment although that age group has video, text, and audio respondents."
+        },
+        {
+          "family": "wrong_chart",
+          "evidence": "Stack order is not the fixed video, text, audio sequence with colors #2ca02c, #d62728, #9467bd: the 35-44 bar leads with purple, and the legend shows a single 'Video' entry in the upper right instead of all three platforms below the plot."
+        },
+        {
+          "family": "hard_to_read",
+          "evidence": "The one-row legend in the upper right covers part of the 18-24 bar, and the 0.00-0.14 proportional axis makes the requested percentage shares uninterpretable."
+        }
+      ]
+    }
+  ]
+}

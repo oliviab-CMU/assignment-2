@@ -1,0 +1,108 @@
+{
+  "predictions": [
+    {
+      "run_id": "contrast-heatmap__glm",
+      "errors": []
+    },
+    {
+      "run_id": "contrast-heatmap__ministral",
+      "errors": [
+        {
+          "family": "wrong_chart",
+          "evidence": "The x tick labels are rotated by 270 degrees instead of the required 45 degrees."
+        }
+      ]
+    },
+    {
+      "run_id": "contrast-heatmap__qwen",
+      "errors": [
+        {
+          "family": "execution_failure",
+          "evidence": "no figure.png was produced; the run ended without a valid figure"
+        }
+      ]
+    },
+    {
+      "run_id": "dense-timeseries-legend__glm",
+      "errors": []
+    },
+    {
+      "run_id": "dense-timeseries-legend__ministral",
+      "errors": []
+    },
+    {
+      "run_id": "dense-timeseries-legend__qwen",
+      "errors": [
+        {
+          "family": "execution_failure",
+          "evidence": "no figure.png was produced; the run ended without a valid figure"
+        }
+      ]
+    },
+    {
+      "run_id": "filtered-cdf-log__glm",
+      "errors": []
+    },
+    {
+      "run_id": "filtered-cdf-log__ministral",
+      "errors": [
+        {
+          "family": "wrong_chart",
+          "evidence": "X-axis limits are not exactly from 50 to 1000; the plot starts at approximately 10 instead of 50."
+        }
+      ]
+    },
+    {
+      "run_id": "filtered-cdf-log__qwen",
+      "errors": [
+        {
+          "family": "execution_failure",
+          "evidence": "no figure.png was produced; the run ended without a valid figure"
+        }
+      ]
+    },
+    {
+      "run_id": "grouped-barchart-values__glm",
+      "errors": [
+        {
+          "family": "wrong_chart",
+          "evidence": "The colors for Q1 and Q2 are reversed; the chart uses #1f77b4 for Q2 and #ff7f0e for Q1, but the instructions require #1f77b4 for Q1 and #ff7f0e for Q2."
+        }
+      ]
+    },
+    {
+      "run_id": "grouped-barchart-values__ministral",
+      "errors": []
+    },
+    {
+      "run_id": "grouped-barchart-values__qwen",
+      "errors": [
+        {
+          "family": "execution_failure",
+          "evidence": "no figure.png was produced; the run ended without a valid figure"
+        }
+      ]
+    },
+    {
+      "run_id": "normalized-stacked-share__glm",
+      "errors": []
+    },
+    {
+      "run_id": "normalized-stacked-share__ministral",
+      "errors": []
+    },
+    {
+      "run_id": "normalized-stacked-share__qwen",
+      "errors": [
+        {
+          "family": "wrong_chart",
+          "evidence": "The chart uses the wrong colors for the platforms and places the legend in the wrong location, violating the specified color order and legend placement."
+        },
+        {
+          "family": "hard_to_read",
+          "evidence": "The x-axis scale is incorrect, with values ranging from 0.00 to 0.14, which makes the percentages hard to read and interpret correctly."
+        }
+      ]
+    }
+  ]
+}
