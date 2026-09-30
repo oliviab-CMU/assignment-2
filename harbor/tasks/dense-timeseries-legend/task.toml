@@ -1,0 +1,54 @@
+schema_version = "1.4"
+
+# Files pulled OUT of the container, so you can look at what the agent produced
+# next to the verifier's verdict.  Paths are container paths.
+artifacts = [
+  "/app/figure.png",
+  "/app/plot.py",
+  "/app/plotted_values.json",
+]
+
+[task]
+name = "cmu-11768/dense-timeseries-legend"
+version = "1.0.0"
+description = "Plot eight daily sensor readings as distinct-colour lines on one axes, with the legend anchored outside the plot on the right and x tick labels rotated 30 degrees."
+keywords = ["visualization", "matplotlib", "timeseries"]
+
+# TRAP 1.  Authors are TABLES, not strings.  `authors = ["your name"]` parses as
+# valid TOML but fails pydantic validation, and harbor reports that as
+# "Either datasets or tasks must be provided" -- i.e. "no task found", not
+# "bad task.toml".  Run preflight.py if you ever see that message.
+[[task.authors]]
+name = "Olivia Brown"
+
+[metadata]
+task_class = "readability_traps"
+chart_family = "multi-line-timeseries"
+source = "tasks/dense-timeseries-legend/task.json"
+
+[verifier]
+timeout_sec = 600.0
+# TRAP 2.  There is no `collect = [...]` list of files here.  [[verifier.collect]]
+# blocks are SHELL COMMANDS run after the agent phase (each block needs a
+# `command` key).  To pull files out, use the root-level `artifacts` list above.
+# Passing filenames to `collect` fails validation with the same misleading
+# "Either datasets or tasks must be provided".
+
+[verifier.env]
+
+[agent]
+timeout_sec = 900.0
+
+[environment]
+# Grading must not need the network: everything is baked into the image.
+network_mode = "no-network"
+build_timeout_sec = 900.0
+os = "linux"
+cpus = 1
+memory_mb = 2048
+mcp_servers = []
+
+[environment.env]
+MPLBACKEND = "Agg"
+
+[solution.env]

@@ -1,0 +1,47 @@
+schema_version = "1.4"
+
+# Files pulled OUT of the container, so you can look at what the agent produced
+# next to the verifier's verdict.  Paths are container paths.
+# Collected at the END OF THE AGENT PHASE, before the verifier runs.
+artifacts = [
+  "/app/figure.png",
+  "/app/plot.py",
+  "/app/plotted_values.json",
+]
+
+[task]
+name = "cmu-11768/normalized-stacked-share"
+version = "1.0.0"
+description = "Normalize raw respondent rows into percentage shares and draw a horizontal 100% stacked bar chart with a fixed stack order, exact colors, and a legend below the plot."
+keywords = ["visualization", "matplotlib", "normalized", "stacked-bar"]
+
+[[task.authors]]
+name = "Olivia Brown"
+
+[metadata]
+task_class = "data_transforms"
+chart_family = "stacked-barh"
+source = "tasks/normalized-stacked-share/task.json"
+
+[verifier]
+# The verifier re-executes plot.py once (REEXEC_TIMEOUT=120s inside test_state.py).
+timeout_sec = 600.0
+
+[verifier.env]
+
+[agent]
+timeout_sec = 900.0
+
+[environment]
+# Grading must not need the network: everything is baked into the image.
+network_mode = "no-network"
+build_timeout_sec = 900.0
+os = "linux"
+cpus = 1
+memory_mb = 2048
+mcp_servers = []
+
+[environment.env]
+MPLBACKEND = "Agg"
+
+[solution.env]
