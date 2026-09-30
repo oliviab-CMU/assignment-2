@@ -1,0 +1,107 @@
+{
+  "predictions": [
+    {
+      "run_id": "contrast-heatmap__glm",
+      "errors": []
+    },
+    {
+      "run_id": "contrast-heatmap__ministral",
+      "errors": [
+        {
+          "family": "wrong_chart",
+          "evidence": "The x-axis and y-axis tick labels are numbers (0, 1, 2, 3, 4, 5) instead of the required variable names (var1, var2, var3, var4, var5, var6)."
+        }
+      ]
+    },
+    {
+      "run_id": "contrast-heatmap__qwen",
+      "errors": [
+        {
+          "family": "execution_failure",
+          "evidence": "no figure.png was produced; the run ended without a valid figure"
+        }
+      ]
+    },
+    {
+      "run_id": "dense-timeseries-legend__glm",
+      "errors": []
+    },
+    {
+      "run_id": "dense-timeseries-legend__ministral",
+      "errors": []
+    },
+    {
+      "run_id": "dense-timeseries-legend__qwen",
+      "errors": [
+        {
+          "family": "execution_failure",
+          "evidence": "no figure.png was produced; the run ended without a valid figure"
+        }
+      ]
+    },
+    {
+      "run_id": "filtered-cdf-log__glm",
+      "errors": [
+        {
+          "family": "wrong_data",
+          "evidence": "The instructions require computing the empirical cumulative distribution as the fraction of kept measurements less than or equal to each distinct latency value. The code computes the CDF using `np.arange(1, len(sorted_latencies) + 1) / len(filtered)`, which produces the rank-normalized values (i.e., the proportion of data points up to each unique value), but this is not the correct empirical CDF. The correct empirical CDF should be the cumulative proportion of observations ≤ each value, which requires counting how many values are ≤ each unique value and dividing by the total number of filtered observations. The code's method produces incorrect CDF values because it assumes the sorted unique values are evenly spaced in rank, which does not reflect the actual distribution of the data."
+        }
+      ]
+    },
+    {
+      "run_id": "filtered-cdf-log__ministral",
+      "errors": []
+    },
+    {
+      "run_id": "filtered-cdf-log__qwen",
+      "errors": [
+        {
+          "family": "execution_failure",
+          "evidence": "no figure.png was produced; the run ended without a valid figure"
+        }
+      ]
+    },
+    {
+      "run_id": "grouped-barchart-values__glm",
+      "errors": []
+    },
+    {
+      "run_id": "grouped-barchart-values__ministral",
+      "errors": []
+    },
+    {
+      "run_id": "grouped-barchart-values__qwen",
+      "errors": [
+        {
+          "family": "execution_failure",
+          "evidence": "no figure.png was produced; the run ended without a valid figure"
+        }
+      ]
+    },
+    {
+      "run_id": "normalized-stacked-share__glm",
+      "errors": []
+    },
+    {
+      "run_id": "normalized-stacked-share__ministral",
+      "errors": []
+    },
+    {
+      "run_id": "normalized-stacked-share__qwen",
+      "errors": [
+        {
+          "family": "wrong_data",
+          "evidence": "The code computes percentages by dividing the count of each platform within an age group by the total count of all platforms in that age group, but it does so using a transformation that does not preserve the correct grouping for the stacked bar chart. Specifically, the `groupby` on `age_group` and `platform` is used to compute counts, but the `transform` on `age_group` alone is used to compute the denominator, which is incorrect because it sums over all age groups instead of per age group. This results in incorrect percentage shares for each age group."
+        },
+        {
+          "family": "wrong_chart",
+          "evidence": "The x-axis scale is incorrect, showing values from 0.00 to 0.14 instead of 0 to 100, and the legend is placed in the upper right corner instead of below the plot."
+        },
+        {
+          "family": "hard_to_read",
+          "evidence": "The legend is in the upper right corner, overlapping the data."
+        }
+      ]
+    }
+  ]
+}
